@@ -371,41 +371,42 @@ function getBalanceIndex(arr) {
  *          [10, 9,  8,  7]
  *        ]
  */
-function getSpiralMatrix(inputSize) {
-  if (inputSize <= 0) {
+function getSpiralMatrix(size) {
+  if (size <= 0) {
     return [];
   }
 
-  const spiralMatrix = new Array(inputSize)
-    .fill()
-    .map(() => new Array(inputSize).fill());
+  const spiralMatrix = [];
+  for (let i = 0; i < size; i += 1) {
+    spiralMatrix.push(new Array(size));
+  }
 
   let value = 1;
   let top = 0;
-  let bottom = inputSize - 1;
+  let bottom = size - 1;
   let left = 0;
-  let right = inputSize - 1;
+  let right = size - 1;
 
-  while (top <= bottom && left <= right) {
-    for (let i = left; i <= right; i += 1) {
+  while (value <= size * size) {
+    for (let i = left; i <= right && value <= size * size; i += 1) {
       spiralMatrix[top][i] = value;
       value += 1;
     }
     top += 1;
 
-    for (let i = top; i <= bottom; i += 1) {
+    for (let i = top; i <= bottom && value <= size * size; i += 1) {
       spiralMatrix[i][right] = value;
       value += 1;
     }
     right -= 1;
 
-    for (let i = right; i >= left; i -= 1) {
+    for (let i = right; i >= left && value <= size * size; i -= 1) {
       spiralMatrix[bottom][i] = value;
       value += 1;
     }
     bottom -= 1;
 
-    for (let i = bottom; i >= top; i -= 1) {
+    for (let i = bottom; i >= top && value <= size * size; i -= 1) {
       spiralMatrix[i][left] = value;
       value += 1;
     }
@@ -431,15 +432,21 @@ function getSpiralMatrix(inputSize) {
  *  ]                 ]
  */
 
-function rotateMatrix(/* matrix */) {
-  throw new Error('Not implemented');
-  /*
-  const rotatedMatrix = matrix.map((row, i) =>
-    row.map((val, j) => matrix[j][i]).reverse()
-  );
+function rotateMatrix(matrix) {
+  const n = matrix.length;
+  const rotatedMatrix = [];
+
+  for (let i = 0; i < n; i += 1) {
+    rotatedMatrix.push(new Array(n));
+  }
+
+  for (let i = 0; i < n; i += 1) {
+    for (let j = 0; j < n; j += 1) {
+      rotatedMatrix[i][j] = matrix[n - 1 - j][i];
+    }
+  }
 
   return rotatedMatrix;
-  */
 }
 
 /**
@@ -456,17 +463,20 @@ function rotateMatrix(/* matrix */) {
  *  [2, 9, 5, 9]    => [2, 5, 9, 9]
  *  [-2, 9, 5, -3]  => [-3, -2, 5, 9]
  */
-function sortByAsc(/* arr */) {
-  throw new Error('Not implemented');
-  /*
-  if (!Array.isArray(arr)) {
-    throw new Error('Input must be an array.');
+function sortByAsc(arr) {
+  const sortedArr = arr.slice(); // Create a copy of the original array
+
+  for (let i = 0; i < sortedArr.length - 1; i += 1) {
+    for (let j = 0; j < sortedArr.length - i - 1; j += 1) {
+      if (sortedArr[j] > sortedArr[j + 1]) {
+        const temp = sortedArr[j];
+        sortedArr[j] = sortedArr[j + 1];
+        sortedArr[j + 1] = temp;
+      }
+    }
   }
 
-  const sortedArray = [...arr].sort((a, b) => a - b);
-
-  return sortedArray;
-  */
+  return sortedArr;
 }
 
 /**
@@ -486,10 +496,6 @@ function sortByAsc(/* arr */) {
  *  '012345', 3 => '024135' => '043215' => '031425'
  *  'qwerty', 3 => 'qetwry' => 'qtrewy' => 'qrwtey'
  */
-function shuffleChar(/* str, iterations */) {
-  throw new Error('Not implemented');
-}
-
 /* function shuffleChar(str, iterations) {
   if (iterations <= 0) {
     return str;
@@ -503,7 +509,8 @@ function shuffleChar(/* str, iterations */) {
   const shuffledStr = evenChars + oddChars;
 
   return shuffleChar(shuffledStr, iterations - 1);
-} */
+}
+*/
 
 /**
  * Returns the nearest largest integer consisting of the digits of the given positive integer.
@@ -522,25 +529,52 @@ function shuffleChar(/* str, iterations */) {
  * @param {number} number The source number
  * @returns {number} The nearest larger number, or original number if none exists.
  */
-function getNearestBigger(/* num */) {
-  throw new Error('Not implemented');
-  /* const digits = Array.from(String(num), Number);
-  const pivot = digits.findIndex((digit, index) => digit < digits[index + 1]);
-  if (pivot === -1) {
-    return num;
+function getNearestBigger(num) {
+  const digits = [];
+  let temp = num;
+  while (temp > 0) {
+    digits.unshift(temp % 10);
+    temp = Math.floor(temp / 10);
   }
 
-  const j =
-    digits.slice(pivot + 1).findIndex((digit) => digit <= digits[pivot]) +
-    pivot +
-    1;
-  [digits[pivot], digits[j]] = [digits[j], digits[pivot]];
+  let i = digits.length - 1;
+  while (i > 0 && digits[i] <= digits[i - 1]) {
+    i -= 1;
+  }
 
-  const firstPart = digits.slice(0, pivot + 1);
-  const secondPart = digits.slice(pivot + 1).reverse();
-  const result = parseInt([...firstPart, ...secondPart].join(''), 10);
+  if (i === 0) {
+    return num; // No greater number can be formed
+  }
 
-  return result <= num ? num : result; */
+  const pivot = i - 1;
+
+  let smallest = i;
+  for (let j = i + 1; j < digits.length; j += 1) {
+    if (digits[j] > digits[pivot] && digits[j] < digits[smallest]) {
+      smallest = j;
+    }
+  }
+
+  const tempDigit = digits[pivot];
+  digits[pivot] = digits[smallest];
+  digits[smallest] = tempDigit;
+
+  let left = pivot + 1;
+  let right = digits.length - 1;
+  while (left < right) {
+    const tempDigit = digits[left];
+    digits[left] = digits[right];
+    digits[right] = tempDigit;
+    left += 1;
+    right -= 1;
+  }
+
+  let result = 0;
+  for (let k = 0; k < digits.length; k += 1) {
+    result = result * 10 + digits[k];
+  }
+
+  return result;
 }
 
 module.exports = {
